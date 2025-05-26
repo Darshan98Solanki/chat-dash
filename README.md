@@ -1,3 +1,7 @@
+## 🚀 Live Demo
+
+[Click here to view the live app](https://chat-dash-1.onrender.com/)
+
 # 💬 Chat Dash
 
 A modern real-time chat application built with **React**, **Tailwind CSS**, and a **WebSocket** backend. Designed with smooth animations, responsive UI, and real-time messaging across chat rooms.
