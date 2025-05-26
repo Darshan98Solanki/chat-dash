@@ -18,7 +18,7 @@ export default function ChatApp() {
     const roomId = useParams().id
 
     useEffect(() => {
-        const ws = new WebSocket("http://localhost:8080");
+        const ws = new WebSocket("https://chat-dash-fpjt.onrender.com");
         wsRef.current = ws;
 
         ws.onmessage = (event) => {
