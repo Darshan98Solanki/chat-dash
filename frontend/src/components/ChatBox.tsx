@@ -18,16 +18,16 @@ export default function ChatApp() {
     const roomId = useParams().id
 
     useEffect(() => {
-        const ws = new WebSocket("https://chat-dash-fpjt.onrender.com");
+        const ws = new WebSocket("wss://chat-dash-fpjt.onrender.com");
         wsRef.current = ws;
 
         ws.onmessage = (event) => {
             const incoming = JSON.parse(event.data);
 
-            if (incoming.type === 'joined'){
+            if (incoming.type === 'joined') {
                 setBgColor(incoming.bgColor || "bg-blue-800");
                 console.log(bgColor);
-            }else {
+            } else {
                 if (incoming.senderId === userIdRef.current) return;
 
                 setMessages(m => [...m, {
@@ -50,6 +50,28 @@ export default function ChatApp() {
         }
 
     }, [])
+
+    const sendMessage = () => {
+        if (input != '') {
+            setMessages(m => [...m, {
+                data: input,
+                senderId: userIdRef.current,
+                bgColor,
+                type: "sent"
+            }]);
+
+            wsRef.current?.send(JSON.stringify({
+                type: 'chat',
+                payload: {
+                    roomId,
+                    bgColor,
+                    senderId: userIdRef.current,
+                    message: input.toString(),
+                }
+            }))
+            setInput('')
+        }
+    }
 
     return <>
         <div className="w-full bg-white dark:bg-zinc-800 shadow-md rounded-lg overflow-hidden">
@@ -87,31 +109,17 @@ export default function ChatApp() {
                             onChange={(event) => {
                                 setInput(event.target.value);
                             }}
+                            onKeyPress={(event)=>{
+                                if(event.key === 'Enter') {
+                                    sendMessage();
+                                    event.preventDefault();
+                                }
+                            }}
                         />
                         <button
                             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded-lg transition duration-300 ease-in-out text-sm"
                             id="sendButton"
-                            onClick={() => {
-                                
-                                if (input !== '')
-                                    setMessages(m => [...m, {
-                                        data: input,
-                                        senderId: userIdRef.current,
-                                        bgColor,
-                                        type: "sent"
-                                    }]);
-
-                                wsRef.current?.send(JSON.stringify({
-                                    type: 'chat',
-                                    payload: {
-                                        roomId,
-                                        bgColor,
-                                        senderId: userIdRef.current,
-                                        message: input.toString(),
-                                    }
-                                }))
-                                setInput('')
-                            }}
+                            onClick={() => sendMessage()}
                         >
                             Send
                         </button>
