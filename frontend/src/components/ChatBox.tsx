@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom";
+import Loader from "./Loader";
 
-export default function ChatApp() {
+export default function ChatApp(
+    { isConnected, setIsConnected }: { isConnected: boolean, setIsConnected: React.Dispatch<React.SetStateAction<boolean>> }
+) {
 
     interface message {
         data: string,
@@ -16,6 +19,8 @@ export default function ChatApp() {
     const [input, setInput] = useState('');
     const userIdRef = useRef<string>(crypto.randomUUID());
     const roomId = useParams().id
+    // const [isConnected, setIsConnected] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const ws = new WebSocket("wss://chat-dash-fpjt.onrender.com");
@@ -40,6 +45,10 @@ export default function ChatApp() {
         }
 
         ws.onopen = () => {
+            setTimeout(() => {
+                setIsConnected(true);
+            }, 4000);
+            console.log("connected to WebSocket");
             ws.send(JSON.stringify({
                 type: 'join',
                 payload: {
@@ -49,7 +58,19 @@ export default function ChatApp() {
             }))
         }
 
-    }, [])
+        ws.onerror = (err) => {
+            console.error("WebSocket error:", err);
+            setError("Failed to connect to the chat server.");
+        };
+
+        ws.onclose = () => {
+            console.log("WebSocket disconnected.");
+            setIsConnected(false);
+        };
+
+        return () => ws.close();
+
+    }, [setIsConnected, roomId])
 
     const sendMessage = () => {
         if (input != '') {
@@ -72,6 +93,17 @@ export default function ChatApp() {
             setInput('')
         }
     }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-[400px] text-red-500">
+                {error}
+            </div>
+        );
+    }
+
+    if(!isConnected)
+        return <Loader/>
 
     return <>
         <div className="w-full bg-white dark:bg-zinc-800 shadow-md rounded-lg overflow-hidden">
@@ -109,8 +141,8 @@ export default function ChatApp() {
                             onChange={(event) => {
                                 setInput(event.target.value);
                             }}
-                            onKeyPress={(event)=>{
-                                if(event.key === 'Enter') {
+                            onKeyPress={(event) => {
+                                if (event.key === 'Enter') {
                                     sendMessage();
                                     event.preventDefault();
                                 }
@@ -127,7 +159,6 @@ export default function ChatApp() {
                 </div>
             </div>
         </div>
-
     </>
 
 }

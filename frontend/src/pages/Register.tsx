@@ -33,7 +33,7 @@ export default function Register() {
                         </div>
                         <div>
                             <Send />
-                            <Button/>
+                            <Button />
                         </div>
                     </div>
                 </div>
