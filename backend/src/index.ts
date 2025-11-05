@@ -37,21 +37,21 @@ let SocketToRooms = new Map<WebSocket, string>();
 // Ping-pong to keep the WebSocket connections alive
 const pingInterval = 30000; // Send ping every 30 seconds
 
+setInterval(() => {
+    wss.clients.forEach((client) => {
+        const ws = client as ExtWebSocket;
+        if (!ws.isAlive) return ws.terminate();
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, pingInterval);
+
 wss.on("connection", (socket: ExtWebSocket) => {
     socket.isAlive = true;
 
     socket.on("pong", () => {
         socket.isAlive = true;
     });
-
-    setInterval(() => {
-        wss.clients.forEach((client) => {
-            const ws = client as ExtWebSocket;
-            if (!ws.isAlive) return ws.terminate();
-            ws.isAlive = false;
-            ws.ping();
-        });
-    }, pingInterval);
 
     socket.on("message", (message: RawData) => {
         try {
